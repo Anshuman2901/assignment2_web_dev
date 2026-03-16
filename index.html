@@ -2,27 +2,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Async Weather Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="container">
-        <h1>Async Weather Tracker</h1>
+    <h1 class="main-title">⛅ Async Weather Tracker</h1>
 
-        <div class="search-box">
-            <input type="text" id="cityInput" placeholder="Enter city name">
-            <button id="searchBtn">Search</button>
+    <div class="wrapper">
+
+        <!-- LEFT PANEL -->
+        <div class="card">
+            <h3>Search City</h3>
+
+            <form id="weather-form">
+                <input type="text" id="city" placeholder="Enter city name">
+                <button id="searchbtn">Search</button>
+            </form>
+
+            <h3>Search History</h3>
+            <div id="history"></div>
         </div>
 
-        <div id="weatherResult" class="weather-box"></div>
-
-        <div class="history">
-            <h3>Search History</h3>
-            <div id="historyList"></div>
+        <!-- RIGHT PANEL -->
+    
+        <div class="card">
+            <h3>Weather Info</h3>
+            <div id="weatherBox" class="weather-box">
+                Search a city to see weather
+            </div>
         </div>
     </div>
 
+
+    <!-- CONSOLE PANEL -->
+    <div class="console-wrapper">
+        <h3>Console – Event Loop</h3>
+        <div id="consoleBox" class="console-box"></div>
+    </div>
     <script src="script.js"></script>
+
 </body>
 </html>

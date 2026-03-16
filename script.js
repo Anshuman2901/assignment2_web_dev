@@ -1,86 +1,107 @@
-// ================= API CONFIG =================
-const API_KEY = "7b953070fd5a615ea59b73c535d29c00"; // Replace with your API key
-const BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
+const API_KEY = "0133cc5316757ac730cc46ae342334e4";
 
-// ================= DOM ELEMENTS =================
-const cityInput = document.getElementById("cityInput");
-const searchBtn = document.getElementById("searchBtn");
-const weatherResult = document.getElementById("weatherResult");
-const historyList = document.getElementById("historyList");
+const form = document.querySelector('#weather-form');
+const weatherInfo = document.querySelector("#weatherBox");
+const cityInput = document.querySelector("#city");
+const history = document.querySelector("#history");
 
-// ================= SHOW WEATHER =================
-function displayWeather(data) {
-    weatherResult.innerHTML = `
-        <h3>${data.name}, ${data.sys.country}</h3>
-        <p>🌡 Temperature: ${(data.main.temp - 273.15).toFixed(1)} °C</p>
-        <p>☁ Condition: ${data.weather[0].main}</p>
-    `;
+const consoleBox = document.querySelector("#consoleBox");
+
+function log(message) {
+  if (consoleBox) {
+    consoleBox.innerHTML += message + "<br>";
+    consoleBox.scrollTop = consoleBox.scrollHeight;
+  }
 }
 
-// ================= SAVE TO LOCAL STORAGE =================
-function saveToLocalStorage(city) {
-    let history = JSON.parse(localStorage.getItem("weatherHistory")) || [];
 
-    if (!history.includes(city)) {
-        history.push(city);
-        localStorage.setItem("weatherHistory", JSON.stringify(history));
-    }
+let historydata = JSON.parse(localStorage.getItem("history")) || [];
 
-    renderHistory();
-}
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
 
-// ================= RENDER HISTORY =================
-function renderHistory() {
-    let history = JSON.parse(localStorage.getItem("weatherHistory")) || [];
-    historyList.innerHTML = "";
+  if (consoleBox) consoleBox.innerHTML = "";
+  log("1️⃣ Sync Start");
 
-    history.forEach(city => {
-        const btn = document.createElement("button");
-        btn.textContent = city;
+  const data = cityInput.value.trim();
 
-        btn.addEventListener("click", () => {
-            fetchWeather(city);
-        });
+  log("2️⃣ Sync End");
 
-        historyList.appendChild(btn);
-    });
-}
+  if (data) {
 
-// ================= FETCH WEATHER (ASYNC/AWAIT) =================
-async function fetchWeather(city) {
-    try {
-        weatherResult.innerHTML = "Loading...";
+    log("[ASYNC] Start fetching");
 
-        console.log("Fetching weather...");
-        const response = await fetch(`${BASE_URL}?q=${city}&appid=${API_KEY}`);
+    setTimeout(() => {
+      log("4️⃣ setTimeout (Macrotask)");
+    }, 0);
 
-        if (!response.ok) {
-            throw new Error("City not found!");
-        }
+    getData(data);
 
-        const data = await response.json();
-        console.log("Weather data received");
-
-        displayWeather(data);
-        saveToLocalStorage(city);
-
-    } catch (error) {
-        weatherResult.innerHTML = `<p style="color:red;">${error.message}</p>`;
-    }
-}
-
-// ================= EVENT LISTENER =================
-searchBtn.addEventListener("click", () => {
-    const city = cityInput.value.trim();
-
-    if (city === "") {
-        alert("Please enter a city name");
-        return;
-    }
-
-    fetchWeather(city);
-    cityInput.value = "";
+  } else {
+    weatherInfo.innerHTML = `<p>Please enter a city name.</p>`;
+  }
 });
 
-// ================= LOAD HISTORY ON PAGE LOAD =================
-renderHistory();
+
+async function getData(data) {
+  try {
+
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?q=${data}&appid=${API_KEY}`
+    );
+
+    Promise.resolve().then(() => {
+      log("3️⃣ Promise.then (Microtask)");
+    });
+
+    const WeatherData = await response.json();
+    console.log(WeatherData);
+
+    log("[ASYNC] Data received");
+
+    if (WeatherData.cod === "404") {
+      weatherInfo.innerHTML = `<p>City not found. Please try again.</p>`;
+    } else {
+      weatherInfo.innerHTML = `
+        <p><strong>City:</strong> ${WeatherData.name}</p>
+        <p><strong>Temperature:</strong> ${(WeatherData.main.temp - 273.15).toFixed(1)} °C</p>
+        <p><strong>Weather:</strong> ${WeatherData.weather[0].main}</p>
+        <p><strong>Humidity:</strong> ${WeatherData.main.humidity}%</p>
+        <p><strong>Wind:</strong> ${WeatherData.wind.speed} m/s</p>
+      `;
+
+      if (historydata.includes(data) == false) {
+        historydata.push(data);
+        localStorage.setItem("history", JSON.stringify(historydata));
+      }
+    }
+
+    showHistory();
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+function showHistory() {
+  history.innerHTML = "";
+
+  if (localStorage.getItem("history")) {
+    historydata = JSON.parse(localStorage.getItem("history"));
+
+    historydata.forEach((ele) => {
+      const li = document.createElement("button");
+      li.textContent = ele;
+      history.appendChild(li);
+
+      li.addEventListener("click", () => {
+        getData(ele);
+      });
+    });
+  }
+}
+
+historydata = [];
+localStorage.setItem("history", JSON.stringify(historydata));
+showHistory();
